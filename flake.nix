@@ -89,6 +89,8 @@
             gnused
             hkgs.ghc
             hkgs.hlint
+            hkgs.inline-c
+            libclang
             libffi
             sourceHighlight
             watchexec
