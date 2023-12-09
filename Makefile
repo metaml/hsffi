@@ -2,10 +2,6 @@
 
 export SHELL := $(shell type --path bash)
 
-# ignores upper-bound constraints
-NEWER=#streamly-core:ghc-prim,streamly-core:template-haskell,template-haskell
-CABARGS=#--minimize-conflict-set --allow-newer='$(NEWER)'
-
 buildc: ## build continuously
 	watchexec --exts cabal,hs --  cabal build --jobs '$$ncpus' $(CABARGS) 2>&1 \
         | source-highlight --src-lang=haskell --out-format=esc
@@ -23,10 +19,11 @@ lint: ## lint
 	hlint app src
 
 clean: ## clean
+	find . -name \*~ -o -name '*#'| xargs rm -f
 	cabal clean
 
 clobber: clean ## clobber
-	find . -name \*~ -o -name '*#'| xargs rm -f
+	rm -rf dist-newstyle
 
 run: BIN ?= ffi
 run: ## run slack
@@ -34,6 +31,13 @@ run: ## run slack
 
 repl: ## repl
 	cabal repl
+
+etc-src: ## install c/c++ source
+	if [ -d etc/c/basilisk ]; then \
+		cd etc/c/basilisk && git pull --rebase; \
+	else \
+		mkdir -p etc/c && git clone git@github.com:AVSLab/basilisk.git etc/c/; \
+	fi	
 
 dev: ## nix develop
 	nix develop

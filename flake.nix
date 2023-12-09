@@ -1,3 +1,4 @@
+
 {
   description = "generate haskell ffi bindings";
 
@@ -13,7 +14,9 @@
         version = "0.1.0";
         pkgs = nixpkgs.legacyPackages.${system};
         hkgs = pkgs.haskell.packages.ghc948;
-        babel = pkgs.runCommand
+        llvm = pkgs.llvmPackages_latest;
+
+        hsffi = pkgs.runCommand
           pname
           { preferLocalBuild = true; buildInputs = [ pname ]; }
           '''';
@@ -77,10 +80,12 @@
           };
         };
 
-        devShells.default = pkgs.mkShell {
+        devShells.default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } rec {
           buildInputs = with pkgs; [
             cabal-install
             cacert
+            clang
+            clang-tools
             coreutils
             findutils
             git
@@ -89,18 +94,32 @@
             gnused
             hkgs.ghc
             hkgs.hlint
-            hkgs.inline-c
-            libclang
+            iconv
             libffi
+            llvm.libclang
+            llvm.libcxx
+            llvm.libllvm
+            llvm.libstdcxxClang
             sourceHighlight
             watchexec
             zlib
           ];
+          # ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
+          #   AppKit
+          #   ApplicationServices
+          #   CoreVideo
+          #   fixDarwinDylibNames
+          #   OpenGL
+          #   Security
+          # ]);
 
           shellHook = ''
             export SHELL=$BASH
             export LANG=en_US.UTF-8
             export PS1="hsffi|$PS1"
+            export CC="${llvm.clang}/bin/clang"
+            export CXX="${llvm.clang}/bin/clang++"
+            export LIBCLANG_PATH="${llvm.libclang.lib}/lib"
           '';
 
         };

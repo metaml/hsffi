@@ -5,6 +5,7 @@ cabal.project.loca*
 deploy
 dist
 dist-newstyle
+etc/c/**
 *.a
 *.o
 *.hi
